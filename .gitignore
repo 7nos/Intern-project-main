@@ -1,0 +1,98 @@
+
+# Large media files
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+
+# Large data files
+*.csv
+*.tsv
+*.jsonl
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.bak
+*.backup
+
+# Folders commonly containing large files
+node_modules/
+
+venv/
+env/
+.virtualenv/
+__pycache__/
+.pytest_cache/
+.cache/
+
+
+
+
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Environment and configuration files
+.env
+.env.local
+.env.development
+.env.production
+*.env
+*.env.*
+config.local
+secrets/
+
+# Large dependency folders
+vendor/
+bower_components/
+packages/
+Pods/
+
+# Machine learning and data science
+*.pkl
+*.pickle
+*.h5
+*.model
+*.ckpt
+*.pth
+*.pt
+*.onnx
+*.tflite
+*.tfrecord
+*.keras
+
+
+
+# Large test or temporary outputs
+coverage/
+test_output/
+test_results/
+profiling/
+benchmarks/
+
+# Custom large file patterns (add your own patterns here)
