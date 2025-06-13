@@ -1,0 +1,271 @@
+/* client/src/components/ChatPage.css */
+
+.chat-page-container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar-area {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  padding: 20px;
+  background-color: #1a1a1a;
+}
+
+.chat-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #2d2d2d;
+  overflow: hidden;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #3c3c3c;
+  border-bottom: 1px solid #444;
+}
+
+.chat-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.username-display {
+  font-size: 0.9rem;
+  color: #b3b3b3;
+}
+
+.header-button {
+  background: none;
+  border: 1px solid #555;
+  color: #e0e0e0;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.header-button:hover {
+  background-color: #4a4a4a;
+}
+
+.messages-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* --- NEW: Wrapper for each message block --- */
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  max-width: 85%;
+}
+
+.message-wrapper.user {
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.message-wrapper.assistant {
+  align-items: flex-start;
+  margin-right: auto;
+}
+
+.message {
+  display: flex;
+}
+
+.message-content {
+  padding: 12px 15px;
+  border-radius: 12px;
+  background-color: #3c3c3c;
+  line-height: 1.6;
+}
+
+.message-wrapper.user .message-content {
+  background-color: #90caf9;
+  color: #121212;
+}
+
+.message-content p {
+  margin: 0;
+}
+
+/* --- NEW: Footer is now outside the message bubble --- */
+.message-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 15px 0 15px; /* Padding to align with the message bubble */
+}
+
+.message-wrapper.user .message-footer {
+  justify-content: flex-end;
+}
+
+.message-wrapper.assistant .message-footer {
+  justify-content: flex-start;
+}
+
+.message-timestamp {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.speaker-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.speaker-icon-button:hover {
+  color: #ccc;
+}
+
+.speaker-icon-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.input-area {
+  display: flex;
+  padding: 15px 20px;
+  border-top: 1px solid #444;
+  gap: 15px;
+  align-items: center;
+  background-color: #2d2d2d;
+}
+
+.input-area textarea {
+  flex-grow: 1;
+  background-color: #3c3c3c;
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: #fff;
+  padding: 10px 15px;
+  font-size: 1rem;
+  resize: none;
+}
+
+.input-area button {
+  flex-shrink: 0;
+  background-color: #90caf9;
+  color: #121212;
+  border: none;
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.input-area button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.input-area .icon-button {
+  background: none;
+  color: #888;
+  width: 44px;
+  height: 44px;
+}
+
+.input-area .icon-button:hover {
+  color: #fff;
+}
+
+.input-area .mic-button.listening {
+  color: #f44336;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #b3b3b3;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toggle-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.toggle-container input[type="checkbox"]:disabled + label,
+.toggle-container input[type="checkbox"]:disabled {
+  color: #666;
+  cursor: not-allowed;
+}
+
+.loading-indicator,
+.error-indicator {
+  text-align: center;
+  padding: 10px;
+  font-style: italic;
+  color: #b3b3b3;
+}
+
+.error-indicator {
+  color: #f44336;
+}
+
+.mindmap-container-for-export {
+  background-color: #2d2d2d; 
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  height: 400px; 
+  width: 100%;
+}
+
+.mindmap-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.mindmap-action-button {
+  background-color: #4a4a4a;
+  color: #ffffff;
+  border: 1px solid #666;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.mindmap-action-button:hover {
+  background-color: #5a5a5a;
+}
+
+.deep-search-result .message-content {
+  border-left: 3px solid #90caf9;
+  background-image: linear-gradient(to right, rgba(144, 202, 249, 0.05), rgba(144, 202, 249, 0));
+}
