@@ -1,0 +1,83 @@
+{
+  "decomposition": {
+    "coreQuestion": "What are the different categories or classifications of information?",
+    "searchQueries": [
+      "types of data",
+      "information classification schemes",
+      "categories of information"
+    ],
+    "context": "The query is broad.  It seeks a general understanding of how information can be categorized, not a specific type of information within a particular field.",
+    "expectedResultTypes": [
+      "articles"
+    ],
+    "aiGenerated": true
+  },
+  "searchResults": [
+    {
+      "query": "types of data",
+      "results": [
+        {
+          "title": "Result for: types of data",
+          "url": "https://duckduckgo.com",
+          "snippet": "This is a mock DuckDuckGo result."
+        }
+      ],
+      "success": true
+    },
+    {
+      "query": "information classification schemes",
+      "results": [
+        {
+          "title": "Result for: information classification schemes",
+          "url": "https://duckduckgo.com",
+          "snippet": "This is a mock DuckDuckGo result."
+        }
+      ],
+      "success": true
+    }
+  ],
+  "allResults": [
+    {
+      "title": "Result for: types of data",
+      "url": "https://duckduckgo.com",
+      "snippet": "This is a mock DuckDuckGo result."
+    },
+    {
+      "title": "Result for: information classification schemes",
+      "url": "https://duckduckgo.com",
+      "snippet": "This is a mock DuckDuckGo result."
+    }
+  ],
+  "synthesis": {
+    "summary": "Information can be categorized in numerous ways, depending on the context and purpose of the classification.  Broadly, information can be classified based on its structure (e.g., numerical, textual, visual, audio), its source (e.g., primary, secondary), its format (e.g., digital, analog), or its purpose (e.g., factual, opinion, instructional).  More specialized schemes exist, such as those used in libraries and archives for organizing and retrieving documents, which often incorporate multiple classification criteria.  These schemes typically employ hierarchical structures, allowing for granular categorization and effective information management. The specific method of classification depends heavily on the needs of the user and the intended application.",
+    "keyPoints": [
+      "Information can be categorized by its structure (numerical, textual, visual, audio).",
+      "Classification schemes can be based on the source of information (primary, secondary) or its format (digital, analog).",
+      "Specialized classification schemes exist in fields like librarianship, often using hierarchical structures.",
+      "The choice of classification system depends on the user's needs and the application."
+    ],
+    "sources": [
+      {
+        "title": "Types of Data (Mock DuckDuckGo Result)",
+        "url": "mock_duckduckgo_result_types_of_data",
+        "relevance": 75
+      },
+      {
+        "title": "Information Classification Schemes (Mock DuckDuckGo Result)",
+        "url": "mock_duckduckgo_result_information_classification_schemes",
+        "relevance": 85
+      }
+    ],
+    "confidence": 80,
+    "metadata": {
+      "language": "en",
+      "domain": "general",
+      "readingTime": 2,
+      "sourcesUsed": 2,
+      "style": "formal",
+      "length": "medium"
+    },
+    "aiGenerated": true,
+    "timestamp": "2025-06-21T06:18:39.907Z"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "decomposition": {
+    "coreQuestion": "hello",
+    "searchQueries": [
+      "hello"
+    ],
+    "context": "",
+    "expectedResultTypes": [
+      "articles"
+    ],
+    "aiGenerated": false
+  },
+  "searchResults": [
+    {
+      "results": [
+        {
+          "title": "Hello - Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Hello",
+          "snippet": "Hello is a salutation or greeting in the English language. It is first attested in writing from 1826. The word hello is a variant of hallo, which was developed from Middle English halon."
+        },
+        {
+          "title": "Hello Definition & Meaning - Merriam-Webster",
+          "url": "https://www.merriam-webster.com/dictionary/hello",
+          "snippet": "Hello is used as a greeting or to begin a phone conversation. It can also be used to express surprise or to attract attention."
+        }
+      ],
+      "error": null,
+      "rateLimited": false
+    }
+  ],
+  "allResults": [
+    {
+      "title": "Hello - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Hello",
+      "snippet": "Hello is a salutation or greeting in the English language. It is first attested in writing from 1826. The word hello is a variant of hallo, which was developed from Middle English halon."
+    },
+    {
+      "title": "Hello Definition & Meaning - Merriam-Webster",
+      "url": "https://www.merriam-webster.com/dictionary/hello",
+      "snippet": "Hello is used as a greeting or to begin a phone conversation. It can also be used to express surprise or to attract attention."
+    }
+  ],
+  "synthesis": {
+    "summary": "Based on the search results for \"hello\", I found 2 relevant sources. Hello is a salutation or greeting in the English language. It is first attested in writing from 1826. The word hello is a variant of hallo, which was developed from Middle English halon.",
+    "keyPoints": [],
+    "sources": [
+      {
+        "title": "Hello - Wikipedia",
+        "url": "https://en.wikipedia.org/wiki/Hello",
+        "relevance": 50
+      },
+      {
+        "title": "Hello Definition & Meaning - Merriam-Webster",
+        "url": "https://www.merriam-webster.com/dictionary/hello",
+        "relevance": 50
+      }
+    ],
+    "confidence": 50,
+    "metadata": {
+      "language": "en",
+      "domain": "general",
+      "readingTime": 1,
+      "sourcesUsed": 2,
+      "style": "formal",
+      "length": "medium"
+    },
+    "aiGenerated": false,
+    "timestamp": "2025-06-21T06:21:26.306Z"
+  }
+}

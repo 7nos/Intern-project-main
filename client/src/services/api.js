@@ -26,7 +26,12 @@ api.interceptors.request.use(
         const userId = localStorage.getItem('userId');
         if (userId) {
             config.headers['x-user-id'] = userId;
+            console.log('API Interceptor: Adding x-user-id header:', userId);
+        } else {
+            console.warn('API Interceptor: No userId found in localStorage');
         }
+        
+        console.log('API Interceptor: Request headers:', config.headers);
         
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];

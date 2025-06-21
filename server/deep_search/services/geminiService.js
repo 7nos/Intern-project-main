@@ -1,355 +1,346 @@
-// server/deep_search/services/geminiService.js
-// Google Gemini AI service for query decomposition and result synthesis
-
+// Google Gemini AI service for advanced deep search
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// Search types
+const SEARCH_TYPES = {
+    WEB: 'web_search',
+    ACADEMIC: 'academic',
+    TECHNICAL: 'technical',
+    NEWS: 'news',
+    CODE: 'code_search'
+};
+
+// Search priorities
+const SEARCH_PRIORITIES = {
+    HIGH: 'high',
+    MEDIUM: 'medium',
+    LOW: 'low'
+};
+
+// Search domains
+const SEARCH_DOMAINS = {
+    GENERAL: 'general',
+    TECHNICAL: 'technical',
+    MEDICAL: 'medical',
+    LEGAL: 'legal',
+    BUSINESS: 'business'
+};
+
 class GeminiService {
-  constructor() {
-    this.apiKey = process.env.GEMINI_API_KEY;
-    if (!this.apiKey) {
-      console.warn('⚠️ GEMINI_API_KEY not found. AI features will be disabled.');
-      this.enabled = false;
-      return;
-    }
-    
-    try {
-      this.genAI = new GoogleGenerativeAI(this.apiKey);
-      this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      this.enabled = true;
-      console.log('🤖 Gemini AI service initialized');
-    } catch (error) {
-      console.error('Failed to initialize Gemini AI:', error);
-      this.enabled = false;
-    }
-  }
+    constructor() {
+        this.apiKey = process.env.GEMINI_API_KEY;
+        this.enabled = false;
+        this.genAI = null;
+        this.model = null;
+        this.logger = {
+            debug: console.debug,
+            info: console.info,
+            warn: console.warn,
+            error: console.error
+        };
 
-  /**
-   * Check if the service is available
-   */
-  isEnabled() {
-    return this.enabled;
-  }
-
-  /**
-   * Decompose a complex query into searchable components
-   */
-  async decomposeQuery(query) {
-    if (!this.enabled) {
-      return this.getFallbackDecomposition(query);
+        try {
+            this.initialize();
+        } catch (error) {
+            this.logger.error('Failed to initialize GeminiService:', error);
+            this.enabled = false;
+        }
     }
 
-    try {
-      const prompt = `
-Analyze this search query and break it down into components for effective web searching.
+    initialize() {
+        if (!this.apiKey) {
+            this.logger.warn('⚠️ GEMINI_API_KEY not found. AI features will be disabled.');
+            return false;
+        }
+        
+        try {
+            this.genAI = new GoogleGenerativeAI(this.apiKey);
+            this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+            this.enabled = true;
+            this.logger.info('🤖 Gemini AI service initialized successfully');
+            return true;
+        } catch (error) {
+            this.logger.error('Failed to initialize Gemini AI:', error);
+            this.enabled = false;
+            return false;
+        }
+    }
+
+    /**
+     * Check if the service is available
+     * @returns {boolean} Whether the service is enabled
+     */
+    isEnabled() {
+        return this.enabled;
+    }
+
+    /**
+     * Generate a structured error response
+     * @param {Error} error - The error object
+     * @param {Object} context - Context information
+     * @returns {Object} Error response
+     */
+    generateErrorResponse(error, context = {}) {
+        return {
+            error: {
+                message: error.message || 'An error occurred',
+                type: error.name || 'UnknownError',
+                stack: error.stack,
+                context
+            },
+            metadata: {
+                timestamp: new Date().toISOString(),
+                service: 'GeminiService',
+                method: context.method,
+                status: 'error'
+            }
+        };
+    }
+
+    /**
+     * Generate a structured success response
+     * @param {any} data - The response data
+     * @param {Object} context - Context information
+     * @returns {Object} Success response
+     */
+    generateSuccessResponse(data, context = {}) {
+        return {
+            data,
+            metadata: {
+                timestamp: new Date().toISOString(),
+                service: 'GeminiService',
+                method: context.method,
+                status: 'success'
+            }
+        };
+    }
+
+    /**
+     * Extract JSON from Gemini response
+     * @param {string} responseText - The response text
+     * @param {Object} context - Context information
+     * @returns {Promise<any>} Parsed JSON
+     */
+    async extractJSONFromResponse(responseText, context) {
+        try {
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                const error = new Error('Invalid JSON response from Gemini');
+                this.logger.error(`Failed to parse Gemini response for ${context.method}:`, error);
+                throw error;
+            }
+            
+            try {
+                return JSON.parse(jsonMatch[0]);
+            } catch (parseError) {
+                const error = new Error('Failed to parse JSON string');
+                error.originalError = parseError;
+                this.logger.error(`Failed to parse JSON string for ${context.method}:`, error);
+                throw error;
+            }
+        } catch (error) {
+            this.logger.error(`Failed to extract JSON from response for ${context.method}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Decompose a complex query into searchable components
+     * @param {string} query - The search query
+     * @param {Object} options - Search options
+     * @param {string} options.type - Search type (web, academic, technical, etc.)
+     * @param {string} options.priority - Search priority (high, medium, low)
+     * @param {string} options.domain - Search domain (general, technical, etc.)
+     * @returns {Promise<Object>} Query decomposition
+     */
+    async decomposeQuery(query, options = {}) {
+        if (!this.enabled) {
+            return this.getFallbackDecomposition(query, options);
+        }
+
+        try {
+            const {
+                type = SEARCH_TYPES.WEB,
+                priority = SEARCH_PRIORITIES.MEDIUM,
+                domain = SEARCH_DOMAINS.GENERAL
+            } = options;
+
+            const prompt = `
+You are an expert search decomposer. Analyze this query and break it down into components for effective ${type} searching.
 
 Query: "${query}"
+Search Type: ${type}
+Priority: ${priority}
+Domain: ${domain}
 
-Respond with ONLY a valid JSON object in this exact format:
+Respond with ONLY a valid JSON object in this format:
 {
-  "coreQuestion": "The main question being asked",
-  "searchQueries": ["search term 1", "search term 2", "search term 3"],
-  "context": "Important context or background",
-  "expectedResultTypes": ["articles", "tutorials", "research"]
+    "coreQuestion": "The main question being asked",
+    "searchQueries": ["search term 1", "search term 2", "search term 3"],
+    "context": "Important context or background",
+    "searchType": "${type}",
+    "priority": "${priority}",
+    "timeRange": {
+        "start": "YYYY-MM-DD",
+        "end": "YYYY-MM-DD"
+    },
+    "confidence": 0-100,
+    "metadata": {
+        "language": "en",
+        "domain": "${domain}",
+        "expectedResults": number,
+        "searchDepth": "shallow" | "medium" | "deep"
+    }
 }
-
-Do not include any text before or after the JSON object.
 `;
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      // Try to parse JSON response
-      try {
-        // Clean the response text to extract JSON
-        let cleanText = text.trim();
+            const result = await this.model.generateContent(prompt);
+            const response = result.response;
+            const text = response.text().trim();
 
-        // Remove any markdown code blocks if present
-        if (cleanText.startsWith('```json')) {
-          cleanText = cleanText.replace(/```json\s*/, '').replace(/\s*```$/, '');
-        } else if (cleanText.startsWith('```')) {
-          cleanText = cleanText.replace(/```\s*/, '').replace(/\s*```$/, '');
+            const parsed = await this.extractJSONFromResponse(text, { method: 'decomposeQuery' });
+            return {
+                coreQuestion: parsed.coreQuestion || query,
+                searchQueries: Array.isArray(parsed.searchQueries) ? parsed.searchQueries.slice(0, 3) : [query],
+                context: parsed.context || '',
+                expectedResultTypes: Array.isArray(parsed.expectedResultTypes) ? parsed.expectedResultTypes : ['articles'],
+                aiGenerated: true
+            };
+        } catch (error) {
+            this.logger.error('Gemini query decomposition error:', error);
+            return this.getFallbackDecomposition(query, options);
         }
+    }
 
-        // Try to find JSON object in the response
-        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanText = jsonMatch[0];
-        }
-
-        const parsed = JSON.parse(cleanText);
+    /**
+     * Get fallback decomposition if AI is disabled or fails
+     */
+    getFallbackDecomposition(query, options = {}) {
         return {
-          coreQuestion: parsed.coreQuestion || query,
-          searchQueries: Array.isArray(parsed.searchQueries) ? parsed.searchQueries.slice(0, 3) : [query],
-          context: parsed.context || '',
-          expectedResultTypes: Array.isArray(parsed.expectedResultTypes) ? parsed.expectedResultTypes : ['articles'],
-          aiGenerated: true
+            coreQuestion: query,
+            searchQueries: [query],
+            context: '',
+            expectedResultTypes: ['articles'],
+            aiGenerated: false
         };
-      } catch (parseError) {
-        console.warn('Failed to parse Gemini response:', text.substring(0, 200) + '...');
-        console.warn('Parse error:', parseError.message);
-        return this.getFallbackDecomposition(query);
-      }
-      
-    } catch (error) {
-      console.error('Gemini query decomposition error:', error);
-      return this.getFallbackDecomposition(query);
-    }
-  }
-
-  /**
-   * Synthesize search results into a comprehensive answer
-   */
-  async synthesizeResults(query, searchResults, decomposition) {
-    if (!this.enabled || !searchResults || searchResults.length === 0) {
-      return this.getFallbackSynthesis(query, searchResults);
     }
 
-    try {
-      // Prepare search results for AI processing
-      const resultsText = searchResults
-        .slice(0, 10) // Limit to top 10 results
-        .map((result, index) => {
-          return `Result ${index + 1}:
-Title: ${result.title || 'No title'}
-Description: ${result.description || 'No description'}
-URL: ${result.url || 'No URL'}
----`;
-        })
-        .join('\n');
+    /**
+     * Synthesize search results into a cohesive response
+     * @param {Array} results - Search results
+     * @param {string} query - Original query
+     * @param {Object} context - Search context
+     * @param {Object} options - Synthesis options
+     * @param {string} options.style - Response style (formal, casual, technical)
+     * @param {string} options.length - Response length (short, medium, long)
+     * @returns {Promise<Object>} Synthesized response
+     */
+    async synthesizeResults(results, query, context, options = {}) {
+        if (!this.enabled) {
+            return this.getFallbackSynthesis(results, query, context, options);
+        }
 
-      const prompt = `
-Based on the following search results, provide a comprehensive answer to the user's question.
+        try {
+            const { style = 'formal', length = 'medium' } = options;
 
-Original Question: "${query}"
-Core Question: "${decomposition.coreQuestion}"
+            // Ensure results is an array
+            const resultsArray = Array.isArray(results) ? results : [];
 
-Search Results:
-${resultsText}
-
-Please provide a well-structured response that:
-1. Directly answers the user's question
-2. Synthesizes information from multiple sources
-3. Includes key insights and important details
-4. Mentions any limitations or areas where more research might be needed
-5. Is written in a clear, informative style
-
-Format your response in markdown with appropriate headings and bullet points where helpful.
-`;
-
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const synthesizedText = response.text();
-      
-      return {
-        answer: synthesizedText,
-        sources: searchResults.slice(0, 5).map(r => ({
-          title: r.title,
-          url: r.url,
-          description: r.description
-        })),
-        aiGenerated: true,
-        confidence: this.assessConfidence(searchResults),
-        timestamp: new Date().toISOString()
-      };
-      
-    } catch (error) {
-      console.error('Gemini synthesis error:', error);
-      return this.getFallbackSynthesis(query, searchResults);
-    }
-  }
-
-  /**
-   * Analyze search results for cognitive biases
-   */
-  async analyzeCognitiveBias(query, searchResults) {
-    if (!this.enabled) {
-      return this.getFallbackBiasAnalysis(query);
-    }
-
-    try {
-      const resultsText = searchResults
-        .slice(0, 5)
-        .map(result => `${result.title}: ${result.description}`)
-        .join('\n');
-
-      const prompt = `
-Analyze the following query and search results for potential cognitive biases:
+            const prompt = `
+You are a master synthesizer. Analyze these search results and create a ${style} ${length}-length response.
 
 Query: "${query}"
-Search Results:
-${resultsText}
+Context: ${JSON.stringify(context)}
 
-Please identify:
-1. What cognitive biases might be present in the query itself
-2. What biases might affect how someone interprets these results
-3. Suggestions for more objective thinking about this topic
-4. Alternative perspectives to consider
+Results:
+${resultsArray.map(result => `- ${result.title || result.snippet || 'Unknown'}: ${result.snippet || result.content || 'No content'}`).join('\n')}
 
-Provide your analysis in JSON format with fields: "queryBiases", "interpretationBiases", "suggestions", "alternatives".
+Synthesize this information into a response that:
+1. Answers the core question
+2. Provides relevant context
+3. Includes key evidence from sources
+4. Maintains factual accuracy
+5. Is well-structured and ${style}
+
+Respond with ONLY a valid JSON object in this format:
+{
+    "summary": "Main synthesized response",
+    "keyPoints": ["point 1", "point 2", "point 3"],
+    "sources": [
+        { "title": "Source Title", "url": "source_url", "relevance": 0-100 }
+    ],
+    "confidence": 0-100,
+    "metadata": {
+        "language": "en",
+        "domain": "${context.metadata?.domain || 'general'}",
+        "readingTime": number,
+        "sourcesUsed": number,
+        "style": "${style}",
+        "length": "${length}"
+    }
+}
 `;
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      try {
-        const analysis = JSON.parse(text);
+            const result = await this.model.generateContent(prompt);
+            const response = result.response;
+            const text = response.text().trim();
+
+            const jsonMatch = /\{[\s\S]*\}/.exec(text);
+            if (!jsonMatch) {
+                console.warn('Invalid JSON response from Gemini');
+                return this.getFallbackSynthesis(results, query, context, options);
+            }
+
+            const parsed = JSON.parse(jsonMatch[0]);
+            return {
+                summary: parsed.summary || 'No summary available',
+                keyPoints: Array.isArray(parsed.keyPoints) ? parsed.keyPoints : [],
+                sources: Array.isArray(parsed.sources) ? parsed.sources : [],
+                confidence: parsed.confidence || 75,
+                metadata: parsed.metadata || {},
+                aiGenerated: true,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.error('Gemini synthesis error:', error);
+            return this.getFallbackSynthesis(results, query, context, options);
+        }
+    }
+
+    /**
+     * Get fallback synthesis if AI is disabled or fails
+     */
+    getFallbackSynthesis(results, query, context, options = {}) {
+        const resultsArray = Array.isArray(results) ? results : [];
+        const summary = resultsArray.length > 0 
+            ? `Based on the search results for "${query}", I found ${resultsArray.length} relevant sources. ${resultsArray[0].snippet || resultsArray[0].content || 'Please try a more specific search query.'}`
+            : `I couldn't find sufficient search results for "${query}". This might be due to the query being too specific or no relevant information being available. Please try rephrasing your question or try again later.`;
+
         return {
-          ...analysis,
-          aiGenerated: true,
-          timestamp: new Date().toISOString()
+            summary: summary,
+            keyPoints: [],
+            sources: resultsArray.map(result => ({
+                title: result.title || 'Unknown Source',
+                url: result.url || '#',
+                relevance: 50
+            })),
+            confidence: resultsArray.length > 0 ? 50 : 0,
+            metadata: {
+                language: 'en',
+                domain: context.metadata?.domain || 'general',
+                readingTime: 1,
+                sourcesUsed: resultsArray.length,
+                style: options.style || 'formal',
+                length: options.length || 'medium'
+            },
+            aiGenerated: false,
+            timestamp: new Date().toISOString()
         };
-      } catch (parseError) {
-        return this.getFallbackBiasAnalysis(query);
-      }
-      
-    } catch (error) {
-      console.error('Gemini bias analysis error:', error);
-      return this.getFallbackBiasAnalysis(query);
-    }
-  }
-
-  /**
-   * Fallback query decomposition when AI is not available
-   */
-  getFallbackDecomposition(query) {
-    const words = query.toLowerCase().split(' ');
-    const searchQueries = [
-      query,
-      words.length > 2 ? words.slice(0, Math.ceil(words.length / 2)).join(' ') : query,
-      words.length > 3 ? words.slice(-Math.ceil(words.length / 2)).join(' ') : query
-    ].filter((q, index, arr) => arr.indexOf(q) === index); // Remove duplicates
-
-    return {
-      coreQuestion: query,
-      searchQueries: searchQueries.slice(0, 3),
-      context: 'Basic query analysis',
-      expectedResultTypes: ['articles', 'information'],
-      aiGenerated: false
-    };
-  }
-
-  /**
-   * Fallback synthesis when AI is not available
-   */
-  getFallbackSynthesis(query, searchResults) {
-    if (!searchResults || searchResults.length === 0) {
-      return {
-        answer: `I couldn't find specific search results for "${query}". This might be due to search service limitations. Please try rephrasing your question or searching for more specific terms.`,
-        sources: [],
-        aiGenerated: false,
-        confidence: 0,
-        timestamp: new Date().toISOString()
-      };
     }
 
-    const topResults = searchResults.slice(0, 5);
-
-    // Create a more intelligent synthesis based on the content
-    let answer = `Based on available information about "${query}":\n\n`;
-
-    // Extract key information from descriptions
-    const descriptions = topResults.map(r => r.description).join(' ');
-
-    // Add synthesized content based on the descriptions
-    if (descriptions.toLowerCase().includes('agent') && descriptions.toLowerCase().includes('structure')) {
-      answer += `**Agent Structure Overview:**\n`;
-      answer += `An agent typically consists of several key components:\n\n`;
-      answer += `• **Sensors/Perception**: How the agent receives information from its environment\n`;
-      answer += `• **Actuators/Actions**: How the agent affects its environment\n`;
-      answer += `• **Agent Function**: The decision-making logic that maps perceptions to actions\n`;
-      answer += `• **Agent Program**: The concrete implementation of the agent function\n\n`;
-      answer += `Common agent architectures include reactive agents (respond directly to stimuli), deliberative agents (plan before acting), and hybrid agents (combine both approaches).\n\n`;
-    } else {
-      // Generic synthesis
-      topResults.forEach((result, index) => {
-        answer += `**${index + 1}. ${result.title}**\n`;
-        answer += `${result.description}\n\n`;
-      });
+    getFallbackCognitiveBias() {
+        return { bias: 'none', explanation: 'No significant cognitive bias detected.' };
     }
-
-    answer += `**Sources:**\n`;
-    topResults.forEach((result, index) => {
-      answer += `${index + 1}. [${result.title}](${result.url})\n`;
-    });
-
-    return {
-      answer,
-      sources: topResults.map(r => ({
-        title: r.title,
-        url: r.url,
-        description: r.description
-      })),
-      aiGenerated: false,
-      confidence: 0.7, // Higher confidence for structured fallback
-      timestamp: new Date().toISOString()
-    };
-  }
-
-  /**
-   * Fallback bias analysis when AI is not available
-   */
-  getFallbackBiasAnalysis(query) {
-    return {
-      queryBiases: ['Consider if your question contains assumptions'],
-      interpretationBiases: ['Be aware of confirmation bias when reading results'],
-      suggestions: ['Look for multiple perspectives', 'Check source credibility'],
-      alternatives: ['Try rephrasing your question', 'Search for opposing viewpoints'],
-      aiGenerated: false,
-      timestamp: new Date().toISOString()
-    };
-  }
-
-  /**
-   * Assess confidence level based on search results quality
-   */
-  assessConfidence(searchResults) {
-    if (!searchResults || searchResults.length === 0) return 0;
-    
-    let score = 0;
-    const factors = {
-      resultCount: Math.min(searchResults.length / 10, 1) * 0.3,
-      hasDescriptions: (searchResults.filter(r => r.description).length / searchResults.length) * 0.3,
-      hasUrls: (searchResults.filter(r => r.url).length / searchResults.length) * 0.2,
-      titleQuality: (searchResults.filter(r => r.title && r.title.length > 10).length / searchResults.length) * 0.2
-    };
-    
-    score = Object.values(factors).reduce((sum, factor) => sum + factor, 0);
-    return Math.round(score * 100) / 100; // Round to 2 decimal places
-  }
-
-  /**
-   * Health check for the service
-   */
-  async healthCheck() {
-    if (!this.enabled) {
-      return {
-        status: 'disabled',
-        reason: 'GEMINI_API_KEY not configured',
-        timestamp: new Date().toISOString()
-      };
-    }
-
-    try {
-      // Simple test query
-      const result = await this.model.generateContent('Say "OK" if you can respond.');
-      const response = await result.response;
-      const text = response.text();
-      
-      return {
-        status: text.toLowerCase().includes('ok') ? 'healthy' : 'degraded',
-        response: text,
-        timestamp: new Date().toISOString()
-      };
-    } catch (error) {
-      return {
-        status: 'error',
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
-    }
-  }
 }
 
 module.exports = GeminiService;

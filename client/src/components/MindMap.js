@@ -47,29 +47,69 @@ const getLayoutedElements = (nodes, edges) => {
     return { nodes, edges };
 };
 
+// Transform backend data format to frontend format
+const transformBackendData = (backendData) => {
+    if (!backendData || !backendData.nodes || !backendData.edges) {
+        return null;
+    }
+
+    // Transform nodes to match frontend expectations
+    const transformedNodes = backendData.nodes.map((node, index) => ({
+        id: node.id,
+        type: index === 0 ? 'customInput' : 'customDefault', // First node is input, others are default
+        data: {
+            label: node.data?.label || node.label || 'Node',
+            content: node.data?.content || node.content || ''
+        },
+        position: node.position || { x: index * 200, y: 100 }
+    }));
+
+    // Transform edges to match frontend expectations
+    const transformedEdges = backendData.edges.map((edge, index) => ({
+        id: edge.id || `edge-${index}`,
+        source: edge.source,
+        target: edge.target,
+        type: 'smoothstep',
+        data: {
+            label: edge.data?.label || edge.label || ''
+        }
+    }));
+
+    return {
+        nodes: transformedNodes,
+        edges: transformedEdges
+    };
+};
+
+// Define node types and edge options outside the component to prevent re-renders
+const nodeTypes = {
+    customInput: CustomInputNode,
+    customDefault: CustomDefaultNode,
+    customOutput: CustomOutputNode,
+};
+
+const defaultEdgeOptions = {
+    type: 'smoothstep',
+    animated: true,
+    markerEnd: { type: MarkerType.ArrowClosed, color: '#90caf9' },
+    style: { stroke: '#90caf9', strokeWidth: 2 },
+};
+
 const MindMapContent = ({ mindMapData }) => {
     const [layoutedElements, setLayoutedElements] = useState(null);
-
-    const nodeTypes = useMemo(() => ({
-        customInput: CustomInputNode,
-        customDefault: CustomDefaultNode,
-        customOutput: CustomOutputNode,
-    }), []);
     
-    const defaultEdgeOptions = {
-        type: 'smoothstep',
-        animated: true,
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#90caf9' },
-        style: { stroke: '#90caf9', strokeWidth: 2 },
-    };
-
     useEffect(() => {
-        if (mindMapData.nodes && mindMapData.edges) {
+        if (mindMapData) {
+            // Transform backend data to frontend format
+            const transformedData = transformBackendData(mindMapData);
+            
+            if (transformedData && transformedData.nodes && transformedData.edges) {
             const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-                mindMapData.nodes,
-                mindMapData.edges
+                    transformedData.nodes,
+                    transformedData.edges
             );
             setLayoutedElements({ nodes: layoutedNodes, edges: layoutedEdges });
+            }
         }
     }, [mindMapData]);
 
@@ -99,8 +139,8 @@ const MindMapContent = ({ mindMapData }) => {
 
 // The main component is now much simpler
 const MindMap = ({ mindMapData }) => {
-    if (!mindMapData || !mindMapData.nodes || !mindMapData.edges) {
-        return <div className="mindmap-error">Invalid mind map data provided.</div>;
+    if (!mindMapData) {
+        return <div className="mindmap-error">No mind map data provided.</div>;
     }
 
     return (

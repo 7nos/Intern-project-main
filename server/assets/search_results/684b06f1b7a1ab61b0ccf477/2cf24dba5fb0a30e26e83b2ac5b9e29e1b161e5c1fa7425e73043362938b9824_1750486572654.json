@@ -1,0 +1,82 @@
+{
+  "decomposition": {
+    "coreQuestion": "What is the meaning and usage of the word 'hello'?",
+    "searchQueries": [
+      "meaning of hello",
+      "usage of hello",
+      "hello etymology"
+    ],
+    "context": "The query is a single word, requiring exploration of its various meanings and contexts of use.",
+    "expectedResultTypes": [
+      "articles"
+    ],
+    "aiGenerated": true
+  },
+  "searchResults": [
+    {
+      "query": "meaning of hello",
+      "results": [
+        {
+          "title": "Result for: meaning of hello",
+          "url": "https://duckduckgo.com",
+          "snippet": "This is a mock DuckDuckGo result."
+        }
+      ],
+      "success": true
+    },
+    {
+      "query": "usage of hello",
+      "results": [
+        {
+          "title": "Result for: usage of hello",
+          "url": "https://duckduckgo.com",
+          "snippet": "This is a mock DuckDuckGo result."
+        }
+      ],
+      "success": true
+    }
+  ],
+  "allResults": [
+    {
+      "title": "Result for: meaning of hello",
+      "url": "https://duckduckgo.com",
+      "snippet": "This is a mock DuckDuckGo result."
+    },
+    {
+      "title": "Result for: usage of hello",
+      "url": "https://duckduckgo.com",
+      "snippet": "This is a mock DuckDuckGo result."
+    }
+  ],
+  "synthesis": {
+    "summary": "'Hello' is a common English greeting, used to initiate conversation or acknowledge someone's presence.  Its meaning is straightforward: it conveys a friendly and informal salutation.  While its precise etymology remains debated, it's widely believed to have evolved from the earlier phrase 'hollo', itself a variant of 'holla', and is connected to a broader history of vocalizations used for getting someone's attention. Usage varies depending on context; it is typically appropriate for informal settings and conversations, and its informality makes it unsuitable for highly formal occasions.",
+    "keyPoints": [
+      "'Hello' is a greeting used to initiate conversation or acknowledge presence.",
+      "Its meaning is simple and conveys friendliness, serving as an informal salutation.",
+      "Its origins are linked to earlier phrases like 'hollo' and 'holla', reflecting a history of attention-getting vocalizations. Usage is dependent on context, typically informal."
+    ],
+    "sources": [
+      {
+        "title": "Mock DuckDuckGo Result - Meaning of Hello",
+        "url": "mock_duckduckgo_result_meaning_of_hello",
+        "relevance": 75
+      },
+      {
+        "title": "Mock DuckDuckGo Result - Usage of Hello",
+        "url": "mock_duckduckgo_result_usage_of_hello",
+        "relevance": 75
+      }
+    ],
+    "confidence": 70,
+    "metadata": {
+      "language": "en",
+      "domain": "linguistics",
+      "readingTime": 1,
+      "sourcesUsed": 2,
+      "style": "formal",
+      "length": "medium"
+    },
+    "aiGenerated": true,
+    "timestamp": "2025-06-21T06:16:12.654Z"
+  }
+}

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Popover } from 'react-tiny-popover';
-import { FaTrash, FaEdit, FaFileAudio, FaProjectDiagram, FaEllipsisV } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaFileAudio, FaProjectDiagram, FaEllipsisV, FaCommentDots } from 'react-icons/fa';
 import './index.css';
 
 const FileManagerWidget = ({
@@ -13,6 +13,7 @@ const FileManagerWidget = ({
     onRenameFile,
     onGeneratePodcast,
     onGenerateMindMap,
+    onChatWithFile,
     isProcessing
 }) => {
     // State to track which file's menu is currently open
@@ -48,16 +49,15 @@ const FileManagerWidget = ({
                             
                             <Popover
                                 isOpen={openMenuId === file._id}
-                                // --- THIS IS THE FIX ---
-                                // We tell the popover to try opening on the 'right' first.
-                                // If there's no space, it will try the other positions as fallbacks.
                                 positions={['right', 'left', 'bottom', 'top']} 
-                                align="center" // This helps align the popover nicely with the button
-                                // --- END FIX ---
+                                align="center"
                                 padding={10}
                                 onClickOutside={() => setOpenMenuId(null)}
                                 content={
                                     <div className="popover-menu">
+                                        <button onClick={() => handleActionClick(onChatWithFile, file._id, file.originalname)} disabled={isProcessing} className="popover-menu-item">
+                                            <FaCommentDots /> Chat with File
+                                        </button>
                                         <button onClick={() => handleActionClick(onGeneratePodcast, file._id, file.originalname)} disabled={isProcessing} className="popover-menu-item">
                                             <FaFileAudio /> Generate Podcast
                                         </button>

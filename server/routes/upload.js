@@ -8,7 +8,7 @@ const fs = require('fs');
 const { tempAuth } = require('../middleware/authMiddleware');
 const File = require('../models/File');
 const User = require('../models/User');
-const axios = require('axios');
+const documentProcessor = require('../services/documentProcessor');
 
 // Use memory storage to handle the file temporarily before we know its final name
 const upload = multer({ storage: multer.memoryStorage() });
@@ -55,16 +55,21 @@ router.post('/', tempAuth, upload.single('file'), async (req, res) => {
 
         console.log(`✅ File upload successful for User '${user.username}'. Final filename: ${finalFilename}.`);
         
-        // 5. Trigger background RAG processing with the guaranteed correct path
-        const pythonRagUrl = process.env.PYTHON_RAG_SERVICE_URL;
-        axios.post(`${pythonRagUrl}/add_document`, {
-            user_id: req.user.id,
-            file_path: finalPath // Use the final, correct path
-        }).then(response => {
-            console.log(`✅ Background RAG processing for '${req.file.originalname}' SUCCEEDED.`);
-        }).catch(err => {
-            console.error(`❌ Background RAG processing for '${req.file.originalname}' FAILED:`, err.message);
-        });
+        // 5. Process the document and add it to the vector store for RAG
+        try {
+            console.log(`🔄 Processing document for RAG: ${req.file.originalname}`);
+            const processingResult = await documentProcessor.processFile(finalPath, {
+                userId: req.user.id,
+                fileId: newFile._id.toString(),
+                originalName: req.file.originalname,
+                fileType: path.extname(req.file.originalname).substring(1)
+            });
+            
+            console.log(`✅ RAG processing completed for '${req.file.originalname}': ${processingResult.chunksAdded} chunks added`);
+        } catch (ragError) {
+            console.error(`❌ RAG processing failed for '${req.file.originalname}':`, ragError.message);
+            // Don't fail the upload if RAG processing fails
+        }
 
         res.status(201).json(newFile);
 
