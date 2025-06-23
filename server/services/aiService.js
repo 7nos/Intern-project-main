@@ -18,8 +18,8 @@ class AIService {
     return await this.gemini.generatePodcastScript(documentContent);
   }
 
-  async generateMindMapData(documentContent) {
-    return await this.gemini.generateMindMapData(documentContent);
+  async generateMindMapData(documentContent, title) {
+    return await this.gemini.generateMindMapFromTranscript(documentContent, title);
   }
 
   buildSystemPrompt(systemPrompt, context, chatHistory) {

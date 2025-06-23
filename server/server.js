@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const { performAssetCleanup } = require('./utils/assetCleanup');
 const File = require('./models/File');
-const { documentProcessor, initializeServices } = require('./services/serviceManager');
+const serviceManager = require('./services/serviceManager');
 
 // Configuration
 const PORT = process.env.PORT || 5001;
@@ -45,18 +45,10 @@ app.use('/podcasts', express.static(path.join(__dirname, 'public', 'podcasts'), 
     }
 }));
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error("Unhandled Error:", err.stack || err);
-    const statusCode = err.status || 500;
-    const message = process.env.NODE_ENV === 'production' && statusCode === 500 
-        ? 'An internal server error occurred.' 
-        : err.message || 'An internal server error occurred.';
-    
-    if (req.originalUrl.startsWith('/api/')) {
-        return res.status(statusCode).json({ message });
-    }
-    res.status(statusCode).send(message);
+// Pass service manager to routes
+app.use((req, res, next) => {
+    req.serviceManager = serviceManager;
+    next();
 });
 
 let server;
@@ -68,13 +60,13 @@ const gracefulShutdown = async (signal) => {
         if (server) {
             server.close(async () => {
                 console.log('HTTP server closed.');
-                await mongoose.connection.close();
-                console.log('MongoDB connection closed.');
+                    await mongoose.connection.close();
+                    console.log('MongoDB connection closed.');
                 process.exit(0);
             });
         } else {
-            await mongoose.connection.close();
-            console.log('MongoDB connection closed.');
+                 await mongoose.connection.close();
+                 console.log('MongoDB connection closed.');
             process.exit(0);
         }
         setTimeout(() => {
@@ -98,9 +90,9 @@ const ensureDirectories = async () => {
         path.join(__dirname, 'public', 'podcasts')
     ];
     
-    for (const dir of dirs) {
-        if (!fs.existsSync(dir)) {
-            await fs.promises.mkdir(dir, { recursive: true });
+        for (const dir of dirs) {
+            if (!fs.existsSync(dir)) {
+                await fs.promises.mkdir(dir, { recursive: true });
             console.log(`Created directory: ${dir}`);
         }
     }
@@ -123,6 +115,14 @@ const reprocessFilesForRAG = async () => {
         let processedCount = 0;
         let errorCount = 0;
         
+        // Get documentProcessor from the service manager
+        const { documentProcessor } = serviceManager.getServices();
+
+        if (!documentProcessor) {
+            console.error("❌ DocumentProcessor service not available. Skipping RAG reprocessing.");
+            return;
+        }
+
         for (const file of allFiles) {
             try {
                 // Check if file exists on disk
@@ -144,7 +144,7 @@ const reprocessFilesForRAG = async () => {
                 console.log(`✅ Reprocessed: ${file.originalname} - ${processingResult.chunksAdded} chunks added`);
                 processedCount++;
                 
-            } catch (error) {
+    } catch (error) {
                 console.error(`❌ Error reprocessing ${file.originalname}:`, error.message);
                 errorCount++;
             }
@@ -180,26 +180,31 @@ const startServer = async () => {
         await connectDB(MONGO_URI);
         console.log("✓ MongoDB connected successfully");
         
-        // Initialize services
-        await initializeServices();
-        console.log("✓ Services initialized successfully");
+        // Initialize services via the manager
+        await serviceManager.initialize();
         
         // Perform asset cleanup
         await performAssetCleanup();
         
         // Reprocess all files for RAG
         await reprocessFilesForRAG();
-        
+
         // Mount API routes
         app.get('/', (req, res) => res.send('Chatbot Backend API is running...'));
+        // --- ISOLATION STEP 1: Comment out all routes to find the source of the error ---
         app.use('/api/network', require('./routes/network'));
         app.use('/api/auth', require('./routes/auth'));
         app.use('/api/chat', require('./routes/chat'));
         app.use('/api/upload', require('./routes/upload'));
         app.use('/api/files', require('./routes/files'));
-        app.use('/api/syllabus', require('./routes/syllabus'));
         app.use('/api/podcast', require('./routes/podcast'));
         app.use('/api/mindmap', require('./routes/mindmap'));
+
+        // Centralized error handler - MUST be after routes
+        app.use((err, req, res, next) => {
+            console.error("Error in request:", err);
+            res.status(500).send('Internal Server Error');
+        });
         
         // Start listening
         const availableIPs = getLocalIPs();
@@ -209,9 +214,9 @@ const startServer = async () => {
             console.log('Access URLs:');
             const frontendPorts = [3000, 3001, 8080, 5173];
             availableIPs.forEach(ip => {
-                frontendPorts.forEach(fp => {
+                 frontendPorts.forEach(fp => {
                     console.log(`   - http://${ip}:${fp} (Frontend) -> Backend: http://${ip}:${PORT}`);
-                });
+                 });
             });
             console.log('==================\n');
         });

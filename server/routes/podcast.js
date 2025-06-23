@@ -5,7 +5,7 @@ const router = express.Router();
 const { tempAuth } = require('../middleware/authMiddleware');
 const File = require('../models/File');
 const { documentProcessor, geminiAI } = require('../services/serviceManager');
-const { generateAndSavePodcast } = require('../services/podcastGenerator');
+const { generatePodcastAudio } = require('../services/podcastGenerator');
 const path = require('path');
 const fs = require('fs');
 
@@ -39,10 +39,28 @@ router.post('/generate', tempAuth, async (req, res) => {
         // 3. Process the document to get its text content
         // We use the documentProcessor's parsing capabilities
         const doc = await documentProcessor.parseFile(file.path, file.mimetype);
-        const documentContent = doc.pageContent;
+        // Support both string and object returns from parseFile
+        let documentContent = '';
+        if (typeof doc === 'string') {
+            documentContent = doc;
+        } else if (doc && typeof doc.pageContent === 'string') {
+            documentContent = doc.pageContent;
+        } else {
+            documentContent = '';
+        }
+        // Add debug log for doc result
+        console.log(`[Podcast][Debug] Parsed document:`, doc);
+        if (documentContent) {
+            console.log(`[Podcast][Debug] Document content length: ${documentContent.length}`);
+            if (documentContent.length < 500) {
+                console.log(`[Podcast][Debug] Document content preview:`, documentContent);
+            }
+        } else {
+            console.log(`[Podcast][Debug] No document content extracted.`);
+        }
 
-        if (!documentContent || documentContent.trim().length < 50) {
-             console.log(`[Podcast] Not enough content in file ${fileId} to generate a podcast.`);
+        if (!documentContent || documentContent.trim().length < 500) {
+            console.log(`[Podcast] Not enough content in file ${fileId} to generate a podcast.`);
             return res.status(400).json({ message: 'The document does not have enough content to generate a podcast.' });
         }
         
@@ -50,18 +68,22 @@ router.post('/generate', tempAuth, async (req, res) => {
 
         // 4. Use GeminiAI service to generate the podcast script
         const script = await geminiAI.generatePodcastScript(documentContent);
+        // Add debug log for script
+        console.log(`[Podcast][Debug] Podcast script:`, script);
 
         console.log(`[Podcast] Script generated. Generating audio...`);
 
         // 5. Use the podcastGenerator service to create the audio file
-        const podcastAudio = await generateAndSavePodcast(script, userId);
+        const podcastUrl = await generatePodcastAudio(script, file.originalname);
+        // Add debug log for podcastAudio
+        console.log(`[Podcast][Debug] Podcast audio result:`, podcastUrl);
         
-        console.log(`[Podcast] Audio generated and saved at ${podcastAudio.filePath}`);
+        console.log(`[Podcast] Audio generated and saved at ${podcastUrl}`);
 
         // 6. Send back the path to the generated podcast
         res.json({
             message: 'Podcast generated successfully!',
-            podcastUrl: podcastAudio.podcastUrl,
+            podcastUrl: podcastUrl,
             script: script, // Optionally return the script
         });
 

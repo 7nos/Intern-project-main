@@ -8,6 +8,7 @@ const { tempAuth } = require('../middleware/authMiddleware');
 const File = require('../models/File');
 const AIService = require('../services/aiService');
 const MindMapGenerator = require('../services/mindMapGenerator');
+const DocumentProcessor = require('../services/documentProcessor');
 
 // @route   POST /api/mindmap/generate
 // @desc    Generate a mind map from a file
@@ -43,7 +44,11 @@ router.post('/generate', tempAuth, async (req, res) => {
 
         console.log(`[MindMap] Requesting generation from local AI service for file: ${file.path}`);
 
-        const fileContent = await fs.readFile(file.path, 'utf8');
+        // Use DocumentProcessor to extract text from any file type
+        // Pass a dummy vectorStore since we only need text extraction
+        const dummyVectorStore = { addDocuments: async () => ({ count: 0 }), getStatistics: async () => ({}) };
+        const docProcessor = new DocumentProcessor(dummyVectorStore);
+        const fileContent = await docProcessor.parseFile(file.path);
         
         if (!fileContent || fileContent.trim().length === 0) {
             return res.status(400).json({ message: 'File is empty or contains no readable content.' });
@@ -55,7 +60,7 @@ router.post('/generate', tempAuth, async (req, res) => {
         try {
             // Create an instance of AIService
             const aiService = require('../services/aiService');
-            mindMapData = await aiService.generateMindMapData(fileContent);
+            mindMapData = await aiService.generateMindMapData(fileContent, file.originalname);
         } catch (aiError) {
             console.warn('[MindMap] AI generation failed, using fallback:', aiError.message);
         }

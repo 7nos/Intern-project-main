@@ -19,6 +19,10 @@ router.post('/', tempAuth, async (req, res) => {
     }
 
     const content = await fs.readFile(file.path, 'utf8');
+    // Check for minimum content length (e.g., 500 characters)
+    if (!content || content.trim().length < 500) {
+      return res.status(400).json({ message: 'The document does not have enough content to generate a podcast.' });
+    }
     const script = await aiService.generatePodcastScript(content);
     const audioPath = await podcastGenerator.generateAudio(script, file_id);
 

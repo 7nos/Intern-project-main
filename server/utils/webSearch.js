@@ -1,69 +1,49 @@
 // server/utils/webSearch.js
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 /**
- * Performs a web search using the DuckDuckGo Instant Answer API.
- * This is a simple, reliable API for getting quick search results.
+ * Performs a web search using the DuckDuckGo API.
+ * This is a more stable alternative to web scraping.
  * @param {string} query - The search query.
  * @returns {Promise<Array>} A promise that resolves to an array of search results.
  */
-async function performSimpleSearch(query) {
-    // The q parameter is the query, and format=json tells the API to return JSON
-    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&t=chatbot-gemini`;
+async function performDuckDuckGoSearch(query) {
+    if (!query) {
+        console.warn('[webSearch] Search query is empty.');
+        return [];
+    }
+
+    const url = `https://api.duckduckgo.com/`;
 
     try {
-        console.log(`[WebSearch] Performing search for: "${query}"`);
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-        const data = await response.json();
+        console.log(`[webSearch] Searching for: "${query}"`);
+        const response = await axios.get(url, {
+            params: {
+                q: query,
+                format: 'json',
+                no_html: 1,
+                skip_disambig: 1,
+            },
+            headers: {
+                // DuckDuckGo API is public but a user agent can help avoid blocks
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
 
-        // The 'RelatedTopics' array often contains the most useful search results
-        if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-            const results = data.RelatedTopics
-                // Filter out topic groups, we only want individual results
-                .filter(topic => topic.Result || topic.Topics)
-                .flatMap(topic => {
-                    if (topic.Result) { // Single result
-                        const searchResult = {
-                            title: topic.Text,
-                            snippet: topic.Result,
-                            url: topic.FirstURL
-                        };
-                         // Extract title from HTML
-                        const titleMatch = searchResult.snippet.match(/<b>(.*?)<\/b>/);
-                        if (titleMatch) {
-                            searchResult.title = titleMatch[1];
-                        }
-                        return [searchResult];
-
-                    } else if (topic.Topics) { // Group of results
-                        return topic.Topics.map(subTopic => {
-                             const searchResult = {
-                                title: subTopic.Text,
-                                snippet: subTopic.Result,
-                                url: subTopic.FirstURL
-                            };
-                            const titleMatch = searchResult.snippet.match(/<b>(.*?)<\/b>/);
-                            if (titleMatch) {
-                                searchResult.title = titleMatch[1];
-                            }
-                            return searchResult;
-                        });
-                    }
-                    return [];
-                });
-            
-            console.log(`[WebSearch] Found ${results.length} results.`);
-            return results;
-        }
-        return [];
+        const results = response.data.RelatedTopics.filter(topic => topic.Text && topic.FirstURL).map(topic => ({
+            title: topic.Text,
+            snippet: topic.Result, // The Result field often has a snippet-like summary
+            url: topic.FirstURL,
+        }));
+        
+        console.log(`[webSearch] Found ${results.length} results from DuckDuckGo API.`);
+        return results;
 
     } catch (error) {
-        console.error(`[WebSearch] Error fetching search results for "${query}":`, error);
-        return []; // Return empty on error
+        console.error(`[webSearch] Error fetching results from DuckDuckGo API:`, error.message);
+        // On error, return an empty array to prevent the entire process from failing.
+        return [];
     }
 }
 
-module.exports = { performSimpleSearch };
+module.exports = { performDuckDuckGoSearch };

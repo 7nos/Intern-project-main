@@ -19,7 +19,7 @@ router.post('/', tempAuth, async (req, res) => {
     }
 
     const content = await fs.readFile(file.path, 'utf8');
-    const mindMapData = await aiService.generateMindMapData(content);
+    const mindMapData = await aiService.generateMindMapData(content, file.originalname);
     const formattedData = mindMapGenerator.formatForReactFlow(mindMapData);
 
     res.status(200).json({

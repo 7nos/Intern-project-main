@@ -1,0 +1,14 @@
+del /Q test-mindmap-frontend.js
+ del /Q test_enhanced_mindmap.js
+ del /Q test_file_delete.js
+ del /Q test_mindmap.js
+ del /Q server\test-mindmap.js
+ del /Q server\test_auth_endpoints.test.js
+ del /Q server\test_deep_search.js
+ del /Q server\test_files_endpoints.test.js
+ del /Q server\test_rag_endpoints.test.js
+ del /Q server\test_simple.js
+ del /Q server\test_upload_endpoint.test.js
+ del /Q server\test_vector_store_endpoints.test.js
+ del /Q client\src\App.test.js
+ del /Q client\src\setupTests.js

@@ -31,9 +31,9 @@ class DuckDuckGoService {
         raw: r, // Keep the original result for potential future use
       }));
 
-      return {
+    return {
         results: formattedResults,
-        error: null,
+      error: null,
         rateLimited: false,
       };
     } catch (error) {
@@ -45,7 +45,7 @@ class DuckDuckGoService {
         results: [],
         error: error.message,
         rateLimited: isRateLimited,
-      };
+    };
     }
   }
 }

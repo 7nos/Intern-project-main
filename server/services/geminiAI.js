@@ -205,9 +205,10 @@ Respond with ONLY a valid JSON array of script segments.
   /**
    * Generate mind map data using Gemini
    * @param {string} documentContent - Full document content
+   * @param {string} title - The title of the document
    * @returns {Promise<Object>} Mind map data with nodes and edges
    */
-  async generateMindMapData(documentContent) {
+  async generateMindMapFromTranscript(documentContent, title) {
     // Defensive check for Gemini Service
     if (!this.geminiService || !this.geminiService.model) {
         console.error('Gemini mind map error: Gemini service or model is not initialized.');
@@ -215,47 +216,43 @@ Respond with ONLY a valid JSON array of script segments.
     }
 
     const prompt = `
-You are an expert in creating mind maps. Based on the following document content, generate a mind map structure representing the key concepts and their relationships. The mind map should be a JSON object with:
-- nodes: Array of { id: string, label: string, content: string }
-- edges: Array of { from: string, to: string, label: string }
-
-Document Content:
-${documentContent.substring(0, 4000)}...
-
-Create a mind map with 5-10 nodes and appropriate edges, capturing the main ideas and their connections. Ensure the central node represents the document's main topic.
-
-Respond with ONLY a valid JSON object containing nodes and edges.
+You are an expert in creating mind maps. Based on the following content from the document titled "${title}", generate a hierarchical mind map. The content is as follows:
+---
+${documentContent}
+---
+Provide the output in a structured JSON format with nodes and edges, suitable for a mind map visualization library like React Flow.
+The JSON object should have two properties: "nodes" and "edges".
+Each node in the "nodes" array must have an "id", a "position" (with "x" and "y" coordinates, which you should determine for a good layout), and a "data" object with a "label". The root node should be at position { x: 250, y: 5 }.
+Each edge in the "edges" array must have an "id", a "source" node ID, and a "target" node ID.
+The mind map should start with a central root node representing the main topic, and then branch out to main ideas, sub-ideas, and key concepts.
+Ensure the structure is logical and easy to understand.
+Example format:
+{
+  "nodes": [
+    { "id": "1", "position": { "x": 250, "y": 5 }, "data": { "label": "Main Topic" } },
+    { "id": "2", "position": { "x": 100, "y": 100 }, "data": { "label": "Branch 1" } }
+  ],
+  "edges": [
+    { "id": "e1-2", "source": "1", "target": "2" }
+  ]
+}
 `;
 
     try {
-      const result = await this.geminiService.model.generateContent(prompt);
-      const response = result.response;
-      let text = response.text().trim();
-
-      // Clean response to extract JSON
-      if (text.startsWith('```json')) {
-        text = text.replace(/```json\s*/, '').replace(/\s*```$/, '');
-      } else if (text.startsWith('```')) {
-        text = text.replace(/```\s*/, '').replace(/\s*```$/, '');
-      }
-
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('Invalid JSON response from Gemini');
-      }
-
-      const mindMap = JSON.parse(jsonMatch[0]);
-      if (!mindMap.nodes || !mindMap.edges || mindMap.nodes.length < 5) {
-        throw new Error('Mind map data is too small or invalid');
-      }
-
-      return mindMap;
+        const result = await this.geminiService.model.generateContent(prompt);
+        const response = await result.response;
+        const text = await response.text();
+        
+        // Sanitize the response to get only the JSON part
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch && jsonMatch[0]) {
+            return JSON.parse(jsonMatch[0]);
+        } else {
+            throw new Error("Failed to extract valid JSON from the AI's response for the mind map.");
+        }
     } catch (error) {
-      console.error('Gemini mind map data error:', error.message);
-      return {
-        nodes: [{ id: '1', label: 'Error', content: 'Failed to generate mind map' }],
-        edges: []
-      };
+        console.error('Error generating mind map with Gemini:', error);
+        throw new Error('Failed to generate mind map data due to an AI service error.');
     }
   }
 
@@ -308,6 +305,34 @@ Respond with ONLY a valid JSON object containing nodes and edges.
       : '';
     return `${basePrompt}${contextSection}${historySection}`;
   }
+
+  async synthesizeResults(results, query, decomposition) {
+    if (!this.geminiService || !this.geminiService.model) {
+        return {
+            summary: `I'm sorry, but the AI service is unavailable. I found ${results.length} results for your query: "${query}".`,
+            sources: results.map(r => r.metadata?.source || r.source || 'Unknown'),
+            aiGenerated: false,
+            fallback: true
+        };
+    }
+    try {
+        const context = results.map(result => `Source: ${result.metadata.source}\nSnippet: ${result.metadata.snippet}`).join('\n\n');
+        const prompt = `Based on the following search results, provide a concise answer to the query: "${query}".\n\nContext:\n${context}`;
+        
+        const result = await this.geminiService.model.generateContent(prompt);
+        const text = this.geminiService._processApiResponse(result.response);
+
+        return {
+            summary: text,
+            sources: results.map(r => r.metadata?.source || r.source),
+            aiGenerated: true,
+            decomposition: decomposition || []
+        };
+    } catch (error) {
+        console.error('Error in synthesizeResults:', error);
+        throw new Error(`Failed to synthesize results for query: "${query}"`);
+    }
+  }
 }
 
-module.exports = GeminiAI;
+module.exports = { GeminiAI };

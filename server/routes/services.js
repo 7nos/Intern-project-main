@@ -8,7 +8,8 @@ const router = express.Router();
 const aiSearch = require('../services/aiSearch');
 const aiService = require('../services/aiService');
 const cacheService = require('../services/cacheService');
-const deepSearch = require('../services/deepSearch');
+const DeepSearchService = require('../deep_search/services/deepSearchService');
+const geminiAI = require('../services/geminiAI');
 const documentProcessor = require('../services/documentProcessor');
 const duckduckgo = require('../services/duckduckgo');
 const geminiAI = require('../services/geminiAI');
@@ -91,16 +92,16 @@ router.post('/cache', async (req, res) => {
   }
 });
 
-// deepSearch example endpoint
-router.post('/deep-search', async (req, res) => {
-  const { query } = req.body;
+router.post('/deep-search/search', async (req, res) => {
+  const { query, history, sessionId } = req.body;
   if (!validateField('query', query, res)) return;
+  if (!validateField('sessionId', sessionId, res)) return;
   try {
-    if (typeof deepSearch.performDeepSearch !== 'function') return res.status(501).json({ success: false, error: 'Not implemented' });
-    const result = await deepSearch.performDeepSearch(query);
+    const deepSearchService = new DeepSearchService(sessionId, geminiAI);
+    const result = await deepSearchService.performSearch(query, history || []);
     res.json({ success: true, result });
   } catch (err) {
-    console.error('deepSearch.performDeepSearch error:', err);
+    console.error('DeepSearchService.performSearch error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

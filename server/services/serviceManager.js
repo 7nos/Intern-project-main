@@ -3,33 +3,45 @@
 const VectorStore = require('./vectorStore');
 const DocumentProcessor = require('./documentProcessor');
 const GeminiService = require('./geminiService');
-const GeminiServiceDS = require('./geminiServiceDS');
-const GeminiAI = require('./geminiAI');
+const { GeminiAI } = require('./geminiAI');
 
-// Create a single instance of the VectorStore
-const vectorStore = new VectorStore();
+class ServiceManager {
+  constructor() {
+    this.vectorStore = null;
+    this.documentProcessor = null;
+    this.geminiService = null;
+    this.geminiAI = null;
+  }
 
-// Create a single instance of the GeminiService
-const geminiService = new GeminiService();
-const geminiServiceDS = new GeminiServiceDS();
+  async initialize() {
+    // Instantiate services in the correct order
+    this.vectorStore = new VectorStore();
+    await this.vectorStore.initialize();
 
-// Create a single instance of the DocumentProcessor and pass the vectorStore to it
-const documentProcessor = new DocumentProcessor(vectorStore);
+    // Pass dependencies via constructor (Dependency Injection)
+    this.documentProcessor = new DocumentProcessor(this.vectorStore);
+    
+    this.geminiService = new GeminiService();
+    await this.geminiService.initialize();
 
-// Create GeminiAI instance and inject the geminiService
-const geminiAI = new GeminiAI(geminiService);
+    // Pass dependencies via constructor
+    this.geminiAI = new GeminiAI(this.geminiService);
 
-// Initialize the services
-const initializeServices = async () => {
-    // It's crucial to initialize the vector store so it can load its data
-    await vectorStore.initialize(); 
-};
+    console.log('✅ All services initialized successfully');
+  }
 
-module.exports = {
-    vectorStore,
-    documentProcessor,
-    geminiService,
-    geminiServiceDS,
-    geminiAI,
-    initializeServices,
-}; 
+  getServices() {
+    return {
+      vectorStore: this.vectorStore,
+      documentProcessor: this.documentProcessor,
+      geminiService: this.geminiService,
+      geminiAI: this.geminiAI,
+    };
+  }
+}
+
+// Create a single, shared instance of the ServiceManager
+const serviceManager = new ServiceManager();
+
+// Export the manager instance, not the class
+module.exports = serviceManager;

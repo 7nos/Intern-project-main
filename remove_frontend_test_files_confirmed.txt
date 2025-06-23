@@ -1,0 +1,3 @@
+User confirmed deletion of:
+- client/src/App.test.js
+- client/src/setupTests.js

@@ -70,3 +70,5 @@ export const performDeepSearch = (query, history = []) => api.post('/chat/deep-s
 
 // --- FIX: Removed the duplicate declaration ---
 export const renameUserFile = (fileId, newOriginalName) => api.patch(`/files/${fileId}`, { newOriginalName });
+
+export const getCurrentUser = () => api.get('/auth/me');

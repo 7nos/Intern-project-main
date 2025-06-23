@@ -8,7 +8,10 @@ const fs = require('fs');
 const { tempAuth } = require('../middleware/authMiddleware');
 const File = require('../models/File');
 const User = require('../models/User');
-const documentProcessor = require('../services/documentProcessor');
+const VectorStore = require('../services/vectorStore');
+const vectorStore = require('../services/vectorStoreInstance');
+const DocumentProcessor = require('../services/documentProcessor');
+const documentProcessor = new DocumentProcessor(vectorStore);
 
 // Use memory storage to handle the file temporarily before we know its final name
 const upload = multer({ storage: multer.memoryStorage() });
