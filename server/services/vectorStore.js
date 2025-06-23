@@ -82,32 +82,43 @@ class VectorStore {
     }
     
     async searchDocuments(query, options = {}) {
-        try {
-            const queryEmbedding = await this.generateEmbedding(query);
-            const filteredDocs = this.documents.filter(doc => {
-                 if (!options || !options.filters) return true;
-                return !Object.entries(options.filters).some(([key, value]) =>
-                    doc.metadata[key] !== value
-                );
-            });
+  try {
+    // Validate input
+    if (!query) throw new Error('Query is required');
+    if (!options.filters?.userId) throw new Error('userId is required in filters');
 
-            const results = filteredDocs.map(doc => {
-                const score = VectorStore.cosineSimilarity(queryEmbedding, doc.embedding);
-                return { ...doc, score };
-            });
+    // Generate query embedding
+    const queryEmbedding = await this.generateEmbedding(query);
 
-            results.sort((a, b) => b.score - a.score);
+    // Apply filters
+    let filteredDocs = this.documents.filter(doc => {
+      // Always filter by userId
+      if (doc.metadata.userId !== options.filters.userId) return false;
+      // Only filter by fileId if provided
+      if (options.filters.fileId && doc.metadata.fileId !== options.filters.fileId) return false;
+      return true;
+    });
 
-            return results.slice(0, options.limit || 5).map(result => ({
-                content: result.content,
-                metadata: result.metadata,
-                score: result.score
-            }));
-        } catch (error) {
-            console.error('❌ Search documents error:', error);
-            return [];
-        }
-    }
+    // Compute cosine similarity and map results
+    const results = filteredDocs.map(doc => {
+      const score = VectorStore.cosineSimilarity(queryEmbedding, doc.embedding);
+      return { ...doc, score };
+    });
+
+    // Sort by score (descending)
+    results.sort((a, b) => b.score - a.score);
+
+    // Limit results and format output
+    return results.slice(0, options.limit || 5).map(result => ({
+      content: result.content,
+      metadata: result.metadata,
+      score: result.score
+    }));
+  } catch (error) {
+    console.error('❌ Search documents error:', error);
+    return [];
+  }
+}
 
     async saveStore() {
         try {

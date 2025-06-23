@@ -55,9 +55,6 @@ const FileManagerWidget = ({
                                 onClickOutside={() => setOpenMenuId(null)}
                                 content={
                                     <div className="popover-menu">
-                                        <button onClick={() => handleActionClick(onChatWithFile, file._id, file.originalname)} disabled={isProcessing} className="popover-menu-item">
-                                            <FaCommentDots /> Chat with File
-                                        </button>
                                         <button onClick={() => handleActionClick(onGeneratePodcast, file._id, file.originalname)} disabled={isProcessing} className="popover-menu-item">
                                             <FaFileAudio /> Generate Podcast
                                         </button>
