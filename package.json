@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "duck-duck-scrape": "^2.2.7",
-    "node-fetch": "^2.7.0"
-  }
-}

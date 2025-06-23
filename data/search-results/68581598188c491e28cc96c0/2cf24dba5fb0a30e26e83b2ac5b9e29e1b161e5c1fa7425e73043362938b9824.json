@@ -1,6 +1,48 @@
 {
-  "summary": "No relevant results found.",
-  "aiGenerated": false,
-  "sources": [],
-  "rawResults": []
+  "summary": "The search query \"hello\" returned results showing that \"hello\" is a common English greeting, first appearing in writing in 1826 (https://en.wikipedia.org/wiki/Hello).  The search also yielded several alternative greetings from other languages, including:\n\n* **Aloha (Hawaiian):**  Means love, affection, peace, compassion, and mercy (https://duckduckgo.com/Aloha).\n* **As-salamu alaykum (Arabic):** Means \"Peace be upon you\" (https://duckduckgo.com/As-salamu_alaykum).\n* **Ciao (Italian):** An informal greeting used for both \"hello\" and \"goodbye\" (https://duckduckgo.com/Ciao).\n* **Kia ora (Māori):**  Means \"have life\" or \"be healthy\" (https://duckduckgo.com/Kia_ora).",
+  "aiGenerated": true,
+  "sources": [
+    "https://en.wikipedia.org/wiki/Hello",
+    "https://duckduckgo.com/Aloha",
+    "https://duckduckgo.com/As-salamu_alaykum",
+    "https://duckduckgo.com/Ciao",
+    "https://duckduckgo.com/Kia_ora"
+  ],
+  "rawResults": [
+    {
+      "query": "hello",
+      "results": [
+        {
+          "title": "Hello",
+          "snippet": "Hello is a salutation or greeting in the English language. It is first attested in writing from 1826.",
+          "url": "https://en.wikipedia.org/wiki/Hello",
+          "source": "DuckDuckGo Instant Answer"
+        },
+        {
+          "title": "Aloha",
+          "snippet": "Aloha - Aloha is the Hawaiian word for love, affection, peace, compassion and mercy, that is commonly used as a greeting. It has a deeper cultural and spiritual significance to native Hawaiians, for whom the term is used to define a force that holds together existence.",
+          "url": "https://duckduckgo.com/Aloha",
+          "source": "DuckDuckGo Related"
+        },
+        {
+          "title": "As-salamu alaykum",
+          "snippet": "As-salamu alaykum - As-salamu alaykum, also written salamun alaykum and typically rendered in English as salam alaykum, is a greeting in Arabic that means 'Peace be upon you'.",
+          "url": "https://duckduckgo.com/As-salamu_alaykum",
+          "source": "DuckDuckGo Related"
+        },
+        {
+          "title": "Ciao",
+          "snippet": "Ciao - Ciao is an informal salutation in the Italian language that is used for both \"hello\" and \"goodbye\". Originally from the Venetian language, it has entered the vocabulary of English and of many other languages around the world.",
+          "url": "https://duckduckgo.com/Ciao",
+          "source": "DuckDuckGo Related"
+        },
+        {
+          "title": "Kia ora",
+          "snippet": "Kia ora - Kia ora is a Māori-language greeting which has entered New Zealand English. It translates literally as \"have life\" or \"be healthy\", wishing the essence of life upon someone, from one speaker to the other.",
+          "url": "https://duckduckgo.com/Kia_ora",
+          "source": "DuckDuckGo Related"
+        }
+      ]
+    }
+  ]
 }

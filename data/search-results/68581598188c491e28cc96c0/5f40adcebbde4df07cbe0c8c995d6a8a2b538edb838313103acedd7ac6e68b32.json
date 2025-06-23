@@ -1,0 +1,48 @@
+{
+  "summary": "Color is the visual perception of light within the electromagnetic spectrum, dependent on an object's absorption, emission, reflection, and transmission of light.  Human perception relies on three types of cone cells in the eye, while other animals possess different numbers or sensitivities, perceiving colors differently (e.g., bees seeing ultraviolet).  Key properties of color include hue, colorfulness, and luminance.  Colors can be additively or subtractively mixed, and metamerism allows different combinations of wavelengths to appear identical. ([https://en.wikipedia.org/wiki/Color](https://en.wikipedia.org/wiki/Color))\n\nThe color of an object is determined by its chromophore, the part of the molecule responsible for absorbing specific wavelengths of light, reflecting the remaining wavelengths that we perceive as color. ([https://duckduckgo.com/Chromophore](https://duckduckgo.com/Chromophore))\n\nBeyond the scientific definition, color holds cultural significance; for example, Chinese culture associates specific colors with auspicious or inauspicious meanings. ([https://duckduckgo.com/Color_in_Chinese_culture](https://duckduckgo.com/Color_in_Chinese_culture))  Additionally, color analysis is a method used in fashion and cosmetics to determine colors that harmonize with an individual's appearance. ([https://duckduckgo.com/Color_analysis](https://duckduckgo.com/Color_analysis))",
+  "aiGenerated": true,
+  "sources": [
+    "https://en.wikipedia.org/wiki/Color",
+    "https://duckduckgo.com/c/Color",
+    "https://duckduckgo.com/Chromophore",
+    "https://duckduckgo.com/Color_analysis",
+    "https://duckduckgo.com/Color_in_Chinese_culture"
+  ],
+  "rawResults": [
+    {
+      "query": "color",
+      "results": [
+        {
+          "title": "Color",
+          "snippet": "Color is the visual perception based on the electromagnetic spectrum. Though color is not an inherent property of matter, color perception is related to an object's light absorption, emission, reflection and transmission. For most humans, colors are perceived in the visible light spectrum with three types of cone cells. Other animals may have a different number of cone cell types or have eyes sensitive to different wavelengths, such as bees that can distinguish ultraviolet, and thus have a different color sensitivity range. Animal perception of color originates from different light wavelength or spectral sensitivity in cone cell types, which is then processed by the brain. Colors have perceived properties such as hue, colorfulness, and luminance. Colors can also be additively mixed or subtractively mixed. If the colors are mixed in the right proportions, because of metamerism, they may look the same as a single-wavelength light.",
+          "url": "https://en.wikipedia.org/wiki/Color",
+          "source": "DuckDuckGo Instant Answer"
+        },
+        {
+          "title": "Color Category",
+          "snippet": "Color Category",
+          "url": "https://duckduckgo.com/c/Color",
+          "source": "DuckDuckGo Related"
+        },
+        {
+          "title": "Chromophore",
+          "snippet": "Chromophore - A chromophore is the part of a molecule responsible for its color. The word is derived from Ancient Greek χρῶμᾰ 'color' and -φόρος 'carrier of'. The color that is seen by our eyes is that of the light not absorbed by the reflecting object within a certain wavelength spectrum of visible light.",
+          "url": "https://duckduckgo.com/Chromophore",
+          "source": "DuckDuckGo Related"
+        },
+        {
+          "title": "Color analysis",
+          "snippet": "Color analysis - Color analysis, also known as personal color analysis, seasonal color analysis, or skin-tone matching, is a term often used within the cosmetics and fashion industry to describe a method of determining the colors of clothing and cosmetics that harmonize with the appearance of a person's skin...",
+          "url": "https://duckduckgo.com/Color_analysis",
+          "source": "DuckDuckGo Related"
+        },
+        {
+          "title": "Color in Chinese culture",
+          "snippet": "Color in Chinese culture - Chinese culture attaches certain values to colors, such as considering some to be auspicious or inauspicious. The Chinese word for 'color' is yánsè. In Literary Chinese, the character 色 more literally corresponds to 'color in the face' or 'emotion'.",
+          "url": "https://duckduckgo.com/Color_in_Chinese_culture",
+          "source": "DuckDuckGo Related"
+        }
+      ]
+    }
+  ]
+}
