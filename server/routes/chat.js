@@ -12,7 +12,7 @@ const {
     handleDeepSearch
 } = require('../controllers/chatController');
 const { ChatSession, SESSION_STATES, SESSION_CONTEXTS, MESSAGE_TYPES } = require('../models/ChatSession');
-const DeepSearchService = require('../services/deepSearch');
+const DeepSearchService = require('../deep_search/services/deepSearchService');
 
 
 // --- Session Management Endpoints ---

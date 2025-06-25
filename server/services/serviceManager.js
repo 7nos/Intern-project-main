@@ -4,6 +4,8 @@ const VectorStore = require('./vectorStore');
 const DocumentProcessor = require('./documentProcessor');
 const GeminiService = require('./geminiService');
 const { GeminiAI } = require('./geminiAI');
+const DeepSearchService = require('../deep_search/services/deepSearchService');
+const DuckDuckGoService = require('../utils/duckduckgo');
 
 class ServiceManager {
   constructor() {
@@ -11,6 +13,8 @@ class ServiceManager {
     this.documentProcessor = null;
     this.geminiService = null;
     this.geminiAI = null;
+    this.deepSearchServices = new Map(); // Store per-user instances
+    this.duckDuckGo = null;
   }
 
   async initialize() {
@@ -26,8 +30,26 @@ class ServiceManager {
 
     // Pass dependencies via constructor
     this.geminiAI = new GeminiAI(this.geminiService);
+    
+    // Initialize DuckDuckGo service
+    this.duckDuckGo = new DuckDuckGoService();
 
     console.log('✅ All services initialized successfully');
+  }
+
+  getDeepSearchService(userId) {
+    if (!userId) {
+      throw new Error('userId is required for DeepSearchService');
+    }
+    
+    // Create new instance if it doesn't exist for this user
+    if (!this.deepSearchServices.has(userId)) {
+      const deepSearchService = new DeepSearchService(userId, this.geminiAI, this.duckDuckGo);
+      this.deepSearchServices.set(userId, deepSearchService);
+      console.log(`Created DeepSearchService for user: ${userId}`);
+    }
+    
+    return this.deepSearchServices.get(userId);
   }
 
   getServices() {
@@ -36,6 +58,7 @@ class ServiceManager {
       documentProcessor: this.documentProcessor,
       geminiService: this.geminiService,
       geminiAI: this.geminiAI,
+      duckDuckGo: this.duckDuckGo
     };
   }
 }

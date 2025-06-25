@@ -11,7 +11,7 @@ class DocumentProcessor {
     }
     this.chunkSize = 512;
     this.chunkOverlap = 100;
-    this.vectorStore = vectorStore;
+    this.vectorStore = vectorStore; // The new ChromaVectorStore instance
   }
 
   async parseFile(filePath) {
@@ -148,34 +148,30 @@ class DocumentProcessor {
    */
   async processFile(filePath, options = {}) {
     try {
-      console.log(`📄 Processing file: ${options.originalName || path.basename(filePath)}`);
-      
+      console.log(`📄 Processing file: ${options.originalName}`);
       const text = await this.parseFile(filePath);
       
       if (!text || text.trim().length === 0) {
         throw new Error('No text content extracted from file');
       }
 
-      // Chunk the text before sending to vector store
-      const chunks = this.chunkText(text, options.originalName || path.basename(filePath));
+      const chunks = this.chunkText(text, options.originalName);
 
       if (chunks.length === 0) {
-        console.warn(`⚠️ No chunks generated for file: ${options.originalName}`);
-        return { success: true, textLength: text.length, chunksAdded: 0, message: 'File was empty or had no content to chunk.' };
+        return { success: true, message: 'File had no content to chunk.' };
       }
 
-      // Add fileId to each chunk's metadata
+      // Add required metadata for ChromaDB filtering
       chunks.forEach(chunk => {
         chunk.metadata.userId = options.userId;
         chunk.metadata.fileId = options.fileId; 
-        chunk.metadata.originalName = options.originalName;
       });
 
-      // Add chunked documents to vector store
+      // The vector store now handles embedding and storage
       const result = await this.vectorStore.addDocuments(chunks);
 
-      console.log(`✅ File processed and added to vector store: ${options.originalName || path.basename(filePath)}`);
-      return { success: true, textLength: text.length, chunksAdded: result.count };
+      console.log(`✅ File processed and added to vector store: ${options.originalName}`);
+      return { success: true, chunksAdded: result.count };
       
     } catch (error) {
       console.error(`❌ Error processing file ${filePath}:`, error.message);
@@ -193,8 +189,10 @@ class DocumentProcessor {
   /**
    * Search documents for a user
    */
-  async searchDocuments(query, filters) {
-    return await this.vectorStore.searchDocuments(query, filters);
+  async searchDocuments(query, options) {
+    // Handle both direct filters and wrapped filters
+    const filters = options.filters || options;
+    return await this.vectorStore.searchDocuments(query, { filters });
   }
 }
 

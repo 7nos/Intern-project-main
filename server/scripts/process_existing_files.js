@@ -3,9 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const File = require('../models/File');
 const documentProcessor = require('../services/documentProcessor');
+const pLimit = require('p-limit');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/chatbotGeminiDB';
+const limit = pLimit(3); // Limit to 3 concurrent file processes
 
 async function processExistingFiles() {
     console.log('=== Processing Existing Files for RAG ===\n');
@@ -18,16 +20,13 @@ async function processExistingFiles() {
         const allFiles = await File.find({}).sort({ createdAt: -1 });
         console.log(`📊 Found ${allFiles.length} files in database\n`);
         
-        let processedCount = 0;
-        let errorCount = 0;
-        
-        for (const file of allFiles) {
+        // Use concurrency limit for processing files
+        const tasks = allFiles.map(file => limit(async () => {
             try {
                 // Check if file exists on disk
                 if (!fs.existsSync(file.path)) {
                     console.log(`❌ File not found on disk: ${file.originalname} (${file.path})`);
-                    errorCount++;
-                    continue;
+                    return { success: false };
                 }
                 
                 console.log(`🔄 Processing: ${file.originalname} (User: ${file.user})`);
@@ -40,13 +39,16 @@ async function processExistingFiles() {
                 });
                 
                 console.log(`✅ Processed: ${file.originalname} - ${processingResult.chunksAdded} chunks added`);
-                processedCount++;
-                
+                return { success: true };
             } catch (error) {
                 console.error(`❌ Error processing ${file.originalname}:`, error.message);
-                errorCount++;
+                return { success: false };
             }
-        }
+        }));
+
+        const results = await Promise.all(tasks);
+        const processedCount = results.filter(r => r.success).length;
+        const errorCount = results.length - processedCount;
         
         console.log(`\n📈 Processing Summary:`);
         console.log(`  • Files processed successfully: ${processedCount}`);

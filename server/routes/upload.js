@@ -13,8 +13,15 @@ const vectorStore = require('../services/vectorStoreInstance');
 const DocumentProcessor = require('../services/documentProcessor');
 const documentProcessor = new DocumentProcessor(vectorStore);
 
-// Use memory storage to handle the file temporarily before we know its final name
-const upload = multer({ storage: multer.memoryStorage() });
+// Configure multer with a file size limit (e.g., 50MB)
+const upload = multer({
+    storage: multer.memoryStorage(), // Use memory storage to access req.file.buffer
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit
+    fileFilter: (req, file, cb) => {
+        // You can also add file type filters here
+        cb(null, true);
+    }
+});
 
 // @route   POST /api/upload
 // @desc    Upload a file, save metadata, rename file to its DB ID, then trigger RAG
@@ -81,5 +88,12 @@ router.post('/', tempAuth, upload.single('file'), async (req, res) => {
         res.status(500).json({ message: 'Server error during file upload.' });
     }
 });
+
+function handleMulterError(err, req, res, next) {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ message: 'File is too large. The maximum size is 50MB.' });
+    }
+    next(err);
+}
 
 module.exports = router;

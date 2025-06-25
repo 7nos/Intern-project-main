@@ -257,6 +257,44 @@ Example format:
   }
 
   /**
+   * Check Gemini API quota status
+   * @returns {Promise<Object>} Quota information
+   */
+  async checkQuota() {
+    try {
+      // Since Gemini doesn't provide a direct quota check API,
+      // we'll make a minimal test request to check if we can generate content
+      const testPrompt = "Hello";
+      const result = await this.geminiService.model.generateContent(testPrompt);
+      const response = result.response;
+      
+      // If we get here, the API is working
+      return {
+        remaining: 100, // Assume we have remaining quota
+        limit: 200, // Gemini 2.0 Flash limit
+        status: 'available'
+      };
+    } catch (error) {
+      // Check if it's a quota error
+      if (error.message && (
+        error.message.includes('quota') ||
+        error.message.includes('429') ||
+        error.message.includes('Too Many Requests') ||
+        error.message.includes('exceeded')
+      )) {
+        return {
+          remaining: 0,
+          limit: 200,
+          status: 'quota_exceeded'
+        };
+      }
+      
+      // Other errors
+      throw error;
+    }
+  }
+
+  /**
    * Generate simple text response using Gemini
    * @param {string} prompt - The prompt to send to Gemini
    * @returns {Promise<string>} Generated text response

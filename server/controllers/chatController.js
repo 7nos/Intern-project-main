@@ -130,7 +130,7 @@ const handleRagMessage = async (req, res) => {
         // Search for relevant document chunks
         let relevantChunks = [];
         try {
-            relevantChunks = await documentProcessor.searchDocuments(query, filters);
+            relevantChunks = await documentProcessor.searchDocuments(query, { filters });
             console.log(`[RAG] Found ${relevantChunks.length} relevant chunks.`);
         } catch (docErr) {
             console.error('[RAG] Error during document search:', docErr);
@@ -183,41 +183,74 @@ const handleRagMessage = async (req, res) => {
     }
 };
 
+// server/controllers/chatController.js
+
+
 const handleDeepSearch = async (req, res) => {
     try {
         const { query, history = [] } = req.body;
+        const userId = req.user.id;
+        
+        console.log(`[DeepSearch] Request received: query="${query}", userId=${userId}`);
+        
         if (!query) {
             return res.status(400).json({ message: 'Query is required for deep search.' });
         }
 
-        const { geminiAI } = req.serviceManager.getServices();
-        if (!geminiAI) {
-            throw new Error('GeminiAI service not available');
+        // Get user-specific DeepSearchService instance
+        const deepSearchService = req.serviceManager.getDeepSearchService(userId);
+        if (!deepSearchService) {
+            throw new Error('DeepSearchService not available');
         }
-
-        const deepSearchService = new DeepSearchService(req.user.id, geminiAI);
+        
         const results = await deepSearchService.performSearch(query, history);
+        
+        console.log(`[DeepSearch] Service returned:`, {
+            hasResults: !!results,
+            hasSummary: !!results?.summary,
+            hasMessage: !!results?.message,
+            messageLength: results?.summary?.length || results?.message?.length,
+            metadata: results?.metadata,
+            hasSources: !!results?.sources
+        });
 
-        if (!results || !results.summary) {
-            return res.status(404).json({ message: 'No relevant results found.' });
+        if (!results || (!results.summary && !results.message)) {
+            console.warn(`[DeepSearch] No valid summary or message returned for query: "${query}"`);
+            return res.status(404).json({
+                message: 'No relevant results found from deep search.',
+                metadata: { sources: [], searchType: 'none' }
+            });
         }
 
-        res.json({
-            message: results.summary,
-            metadata: {
-                sources: results.sources || [],
-                aiGenerated: results.aiGenerated || false,
-                rawResults: results.rawResults || []
-            }
+        const message = results.summary || results.message;
+        const metadata = results.metadata || {
+            sources: results.sources || [],
+            searchType: results.searchType || (results.summary ? 'deep_search' : 'fallback'),
+            aiGenerated: results.aiGenerated,
+            query: results.query,
+            note: results.note
+        };
+        
+        const response = {
+            message: message,
+            metadata: metadata
+        };
+        
+        console.log(`[DeepSearch] Sending response:`, {
+            messageLength: response.message.length,
+            metadata: response.metadata
         });
+
+        res.json(response);
     } catch (error) {
         console.error('Deep Search error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: error.message || 'Deep search failed.',
-            error: error.message 
+            metadata: { sources: [], searchType: 'error', note: error.message }
         });
     }
 };
+
 
 module.exports = {
     createSession,
@@ -227,4 +260,4 @@ module.exports = {
     handleStandardMessage,
     handleRagMessage,
     handleDeepSearch,
-}; 
+};

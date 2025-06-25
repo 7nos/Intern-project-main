@@ -2,9 +2,12 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
+
+const langchainVectorStore = require('./services/LangchainVectorStore');
+
 // Make the .env file path absolute to avoid ambiguity
 dotenv.config({ path: path.resolve(__dirname, '.env') });
-
+const multer = require('multer'); // <-- Add this line if it's not there already
 const express = require('express');
 const cors = require('cors');
 const { getLocalIPs } = require('./utils/networkUtils');
@@ -30,6 +33,20 @@ if (!GEMINI_API_KEY) {
 
 const app = express();
 
+
+
+langchainVectorStore.initialize().then(() => {
+    app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+}).catch(err => {
+    console.error("Failed to initialize services. Exiting.", err);
+    process.exit(1);
+});
+
+//handle large files upload files
+app.use(handleMulterError);
+
+
+
 // Initialize middleware
 app.use(cors());
 app.use(express.json());
@@ -50,6 +67,23 @@ app.use((req, res, next) => {
     req.serviceManager = serviceManager;
     next();
 });
+
+
+
+function handleMulterError(err, req, res, next) {
+    // Check if the error is a Multer error and specifically the 'file too large' error
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ message: 'File is too large. The maximum allowed size is 50MB.' });
+    }
+    
+    // You could also handle other specific multer errors here if needed
+    if (err instanceof multer.MulterError) {
+        return res.status(400).json({ message: `File upload error: ${err.message}` });
+    }
+
+    // If it's not a multer error, pass it on to the next error handler
+    next(err);
+}
 
 let server;
 
@@ -200,6 +234,8 @@ const startServer = async () => {
         app.use('/api/podcast', require('./routes/podcast'));
         app.use('/api/mindmap', require('./routes/mindmap'));
 
+
+
         // Centralized error handler - MUST be after routes
         app.use((err, req, res, next) => {
             console.error("Error in request:", err);
@@ -226,6 +262,21 @@ const startServer = async () => {
         process.exit(1);
     }
 };
+
+app.use(handleMulterError);
+
+
+
+
+// Initialize the new vector store before starting the server
+langchainVectorStore.initialize().then(() => {
+    console.log("Vector store initialized successfully");
+}).catch(err => {
+    console.error("Failed to initialize vector store. Exiting.", err);
+    process.exit(1);
+});
+
+
 
 // Start if this is the main module
 if (require.main === module) {
