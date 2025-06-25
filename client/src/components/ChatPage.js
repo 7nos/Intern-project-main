@@ -14,6 +14,7 @@ import SystemPromptWidget, { availablePrompts, getPromptTextById } from './Syste
 import FileUploadWidget from './FileUploadWidget';
 import FileManagerWidget from './FileManagerWidget';
 import MindMap from './MindMap'; // Restored for mind map rendering
+import HistoryModal from './HistoryModal';
 
 import './ChatPage.css';
 
@@ -43,6 +44,7 @@ const ChatPage = ({ setIsAuthenticated }) => {
     const [isRagEnabled, setIsRagEnabled] = useState(false);
     const [isDeepSearchEnabled, setIsDeepSearchEnabled] = useState(false);
     const [activeFileForRag, setActiveFileForRag] = useState(null);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
     
     useEffect(() => {
         console.log('[Debug] Loading states changed:', loadingStates);
@@ -378,6 +380,19 @@ const ChatPage = ({ setIsAuthenticated }) => {
         setCurrentSystemPromptId(matchingPreset ? matchingPreset.id : 'custom');
     }, []);
 
+    const handleLoadSession = useCallback((sessionData) => {
+        if (sessionData && sessionData.messages) {
+            setMessages(sessionData.messages);
+            if (sessionData.systemPrompt) {
+                setEditableSystemPromptText(sessionData.systemPrompt);
+            }
+            if (sessionData.sessionId) {
+                setSessionId(sessionData.sessionId);
+                localStorage.setItem('sessionId', sessionData.sessionId);
+            }
+        }
+    }, []);
+
     const handleEnterKey = useCallback((e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -413,7 +428,7 @@ const ChatPage = ({ setIsAuthenticated }) => {
                     <h1>Engineering Tutor</h1>
                     <div className="header-controls">
                         <span className="username-display">Hi, {username}!</span>
-                        {/* History button functionality removed as modal is unused */}
+                        <button onClick={() => setShowHistoryModal(true)} className="header-button" disabled={isProcessing}>History</button>
                         <button onClick={handleNewChat} className="header-button" disabled={isProcessing}>New Chat</button>
                         <button onClick={() => handleLogout(false)} className="header-button" disabled={isProcessing}>Logout</button>
                     </div>
@@ -492,6 +507,13 @@ const ChatPage = ({ setIsAuthenticated }) => {
                 </form>
                 {error && <p className="error-message">{error}</p>}
             </div>
+            {showHistoryModal && (
+                <HistoryModal
+                    isOpen={showHistoryModal}
+                    onClose={() => setShowHistoryModal(false)}
+                    onLoadSession={handleLoadSession}
+                />
+            )}
         </div>
     );
 };

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Popover } from 'react-tiny-popover';
-import { FaTrash, FaEdit, FaFileAudio, FaProjectDiagram, FaEllipsisV, FaCommentDots } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaFileAudio, FaProjectDiagram, FaEllipsisV } from 'react-icons/fa';
 import './index.css';
 
 const FileManagerWidget = ({

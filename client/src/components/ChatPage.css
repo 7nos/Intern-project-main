@@ -296,3 +296,65 @@
   border-left: 3px solid #90caf9;
   background-image: linear-gradient(to right, rgba(144, 202, 249, 0.05), rgba(144, 202, 249, 0));
 }
+
+
+/* client/src/components/ChatPage.css */
+.deep-search-content {
+  margin-bottom: 1rem;
+}
+
+.sources-list {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.sources-list ul {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+}
+
+.sources-list a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.sources-list a:hover {
+  text-decoration: underline;
+}
+
+.search-note {
+  font-style: italic;
+  color: #555;
+  margin-top: 0.5rem;
+}
+
+
+/* client/src/components/ChatPage.css */
+.deep-search-content {
+  margin-bottom: 1rem;
+}
+
+.sources-list {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.sources-list ul {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+}
+
+.sources-list a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.sources-list a:hover {
+  text-decoration: underline;
+}
+
+.search-note {
+  font-style: italic;
+  color: #555;
+  margin-top: 0.5rem;
+}
